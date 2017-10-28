@@ -97,17 +97,30 @@ public:
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 private:
   int remove(const T& value, std::unique_ptr<Node>& current, bool equalFlag = false){
+    /* If equal valued nodes are present they should be "touching" each other (linked directly)
+    equalFlag is if you find the value, you only check the nodes touching it, if they aren't the
+    same, then you skip over them because they aren't the value you are looking for. */
+
     int numRemoved = 0;
     if(value == current->value_){
       numRemoved += this->remove(current);
       equalFlag = true;
     }
     if(value <= current->value){
-      if(equalFlag)  // WORK IN PROGRESS
+      if(equalFlag)
+        if(value != current->left_.value_)
+          goto skip_left_remove;
       numRemoved += this->remove(value, current->left_, equalFlag);
+      skip_left_remove:;
     }
-    if(value >= current->value_)
+    if(value >= current->value_){
+      if(equalFlag)
+        if(value != current->right_.value_)
+          goto skip_right_remove;
       numRemoved += this->remove(value, current->right_, equalFlag);
+      skip_right_remove:;
+    }
+    return numRemoved;
   }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
   int remove(std::unique_ptr<Node>& toDelete){
