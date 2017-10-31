@@ -92,55 +92,16 @@ public:
   } // end function
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
   int remove(const T& value){
-    return this->remove(value,this->root_);
+    return this->remove(value, this->root_.get());
   }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 private:
-  int remove(const T& value, std::unique_ptr<Node>& current){
-    /*  */
-
-    int numRemoved = 0;
-    if(value == current->value_){
-      numRemoved += this->remove(current);
-    }
-    if(value <= current->value_){
-      numRemoved += this->remove(value, current->left_);
-    }
-    if(value >= current->value_){
-      numRemoved += this->remove(value, current->right_);
-    }
-    return numRemoved;
+  int remove(const T& value, Node* current ){
+ 
   }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-  int remove(std::unique_ptr<Node>& toDelete){
-    int numRemoved = 0;
-
-    if(!toDelete->left_ && !toDelete->right_){
-      toDelete.reset();
-      numRemoved += 1;
-    }
-
-    else if( toDelete->left_ && toDelete->right_ ){
-      if( !toDelete->right_->left_ ){
-        toDelete->value_ = toDelete->right_->value_;
-        numRemoved += this->remove(toDelete->right_);
-      }
-      else {
-        Node* traversal = toDelete->right_.get();
-        while(traversal->left_->left_)
-          traversal = traversal->left_.get();
-        toDelete->value_ = traversal->left_->value_;
-        numRemoved += this->remove(traversal->left_);
-      }
-    }
-
-    else {
-      std::unique_ptr<Node>* onlyChild = toDelete->left_ ? &toDelete->left_ : &toDelete->right_;
-      toDelete->value_ = (*onlyChild)->value_;
-      numRemoved += this->remove(*onlyChild);
-    }
-
-    return numRemoved;
+  int remove(Node* toDelete, bool deleteLeft){
+    
   }
 public:
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
