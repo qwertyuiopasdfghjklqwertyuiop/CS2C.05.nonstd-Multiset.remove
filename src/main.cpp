@@ -9,7 +9,7 @@ int main(){
 
    srand(time(NULL));
    MultiSet<int> test;
-   for(int k = 0; k < 10; k++)
+   for(int k = 0; k < 20; k++)
    {
       int temp = rand() % 10;
       test.insert(temp);
@@ -19,6 +19,7 @@ int main(){
 
    std::cout << myCounter << std::endl;
    std::cout << test.count(toCountFor) << std::endl;
+   std::cout << test.remove(toCountFor) << std::endl;
    std::cout << test.size() << std::endl;
    return 0;
 }
