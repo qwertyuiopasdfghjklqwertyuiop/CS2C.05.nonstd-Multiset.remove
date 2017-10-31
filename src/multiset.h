@@ -25,7 +25,7 @@ public:
       return this->left_.get();
     }
     Node *right() {
-      return this->right.get();
+      return this->right_.get();
     }
     const T& value() const {
       return this->value_;
@@ -128,7 +128,10 @@ private:
     // No children Case:
     // No orphans to worry about if we just kill him
     if(!toDelete->left_ && !toDelete->right_) {
-      parent->reset();
+      if(toDelete == this->root_.get())
+        this->root_.reset();
+      else
+        parent->reset();
       numRemoved += 1;
     }
 
@@ -158,7 +161,7 @@ private:
         if( toDelete != this->root_.get() ) { std::cout << "Fucking how!?" << std::endl; exit(1); }
 
         toDelete->value_ = parentOfAnOnlyChild->get()->value_;
-        this->remove(parentOfAnOnlyChild->get() , parentOfAnOnlyChild);
+        numRemoved += this->remove(parentOfAnOnlyChild->get() , parentOfAnOnlyChild);
       }
       else {
         parent->reset( parentOfAnOnlyChild->release() );   // Take away custody of their only child and give it to their parent
@@ -174,7 +177,7 @@ public:
     return count(value, this->root_.get());
   }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-  int count(const T& value, Node* localRoot = NULL) {
+  int count(const T& value, Node* localRoot) {
     /* Recursive function to count how many times a value is in a tree.
     Will be called by the count above with localRoot set to this->root_*/
     if(!localRoot) return 0;
