@@ -54,11 +54,12 @@ public:
     // Root
     if(!this->root_)
     {
-      root_ = std::unique_ptr<Node>(new Node(value));
+      this->root_ = std::unique_ptr<Node>(new Node(value));
       this->size_++;
       return;
     }
 
+    // Traverse through tree until you get to the bottom where the insert should go
     Node* current = root_.get();
     while(true)
     {
@@ -71,7 +72,7 @@ public:
         {
           current->left_ = std::unique_ptr<Node>(new Node(value));
           this->size_++;
-          return;;
+          return;
         }
       }
 
@@ -92,13 +93,17 @@ public:
   } // end function
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
   int remove(const T& value){
-   return this->remove(value, this->root_.get() , NULL);
+   int numRemoved = this->remove( value, this->root_.get(), NULL );
+   this->size_ -= numRemoved;
+   return numRemoved;
   }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 private:
   int remove(const T& value, Node* current, std::unique_ptr<Node>* parent = NULL){
     if(!current) return 0;
     int numRemoved = 0;
+
+    // You found him, now search and kill all his children that look like him before finishing him off
     if( value == current->value_ ){
       numRemoved += this->remove( value, current->left_.get(), &current->left_ );
       numRemoved += this->remove( value, current->right_.get(), &current->right_ );
@@ -122,7 +127,7 @@ private:
 
     // No children Case:
     // No orphans to worry about if we just kill him
-    if(!toDelete->left_ && !toDelete->right_) {   // No Children case
+    if(!toDelete->left_ && !toDelete->right_) {
       parent->reset();
       numRemoved += 1;
     }
@@ -149,7 +154,7 @@ private:
     // toDelete's parent abandons him and adopts his only child
     else {
       std::unique_ptr<Node>* parentOfAnOnlyChild = &(toDelete->left_.get() ? toDelete->left_ : toDelete->right_);
-      if( !parent ){  // if it has no parent it must always be root
+      if( !parent ){  // if it has no parent it must always be root, if not, then I don't know how
         if( toDelete != this->root_.get() ) { std::cout << "Fucking how!?" << std::endl; exit(1); }
 
         toDelete->value_ = parentOfAnOnlyChild->get()->value_;
