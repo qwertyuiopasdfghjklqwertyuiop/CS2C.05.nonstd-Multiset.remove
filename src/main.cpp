@@ -4,23 +4,26 @@
 
 using nonstd::MultiSet;
 int main(){
-   int toCountFor = rand() % 10;
+   srand(time(NULL));
+
+   int toCountFor = rand() % 101;
    int myCounter = 0;
 
-   srand(time(NULL));
    MultiSet<int> test;
-   for(int k = 0; k < 20; k++)
+   for(int k = 0; k < 1000; k++)
    {
-      int temp = rand() % 10;
+      int temp = rand() % 101;
       test.insert(temp);
       if(toCountFor == temp)
          myCounter++;
    }
 
-   std::cout << myCounter << std::endl;
-   std::cout << test.count(toCountFor) << std::endl;
-   std::cout << test.remove(toCountFor) << std::endl;
-   std::cout << test.size() << std::endl;
+   std::cout << "Size: " << test.size() << std::endl;
+   std::cout << "Count for: " << toCountFor << std::endl;
+   std::cout << "Counted: " << myCounter << std::endl;
+   std::cout << "Removed: " << test.remove(toCountFor) << std::endl;
+   std::cout << "Removed again: " << test.remove(toCountFor) << std::endl;
+   std::cout << "New Size: " << test.size() << std::endl;
    return 0;
 }
 

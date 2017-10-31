@@ -92,14 +92,19 @@ public:
   } // end function
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
   int remove(const T& value){
-    return this->remove(value, this->root_.get());
+   return this->remove(value, this->root_.get() , NULL);
   }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 private:
   int remove(const T& value, Node* current, std::unique_ptr<Node>* parent = NULL){
+    if(!current) return 0;
     int numRemoved = 0;
-    if( value == current->value_ )
-      numRemoved +=  this->remove( current, parent );
+    if( value == current->value_ ){
+      numRemoved += this->remove( value, current->left_.get(), &current->left_ );
+      numRemoved += this->remove( value, current->right_.get(), &current->right_ );
+      numRemoved += this->remove( current, parent );
+      return numRemoved;
+    }
     if( value <= current->value_ )
       numRemoved += this->remove( value, current->left_.get(), &current->left_ );
     if(value >= current->value_)
@@ -109,29 +114,53 @@ private:
   }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
   int remove( Node* toDelete, std::unique_ptr<Node>* parent ){
+    /* Remove function that removes a single node.
+       toDelete is a Node* to the Node you want to delete
+       parent is a pointer to the unique_ptr that points to toDelete */
+
     int numRemoved = 0;
 
-    if(!toDelete->left_ && !toDelete->right_) {
+    // No children Case:
+    // No orphans to worry about if we just kill him
+    if(!toDelete->left_ && !toDelete->right_) {   // No Children case
       parent->reset();
       numRemoved += 1;
     }
 
+    // 2 Children Case:
+    // 2 Children so we get the least most value on the right
+    // and overwrite the value of toDelete with the value of 
+    // that node, then send that node to be executed.
     else if(toDelete->left_ && toDelete->right_) {
       if(!toDelete->right_->left_) {
         toDelete->value_ = toDelete->right_->value_;
         numRemoved += this->remove(toDelete->right_.get(), &toDelete->right_);
-      }
+      } 
       else{
         Node* traversal = toDelete->right_.get();
-        while(traversal->left_->left_)
+        while(traversal->left_->left_)  // keep traversing left but keep your distance so you stop at parent of the node you want
           traversal = traversal->left_.get();
         toDelete->value_ = traversal->left_->value_;
         numRemoved += this->remove(traversal->left_.get(), &traversal->left_);
       }
     }
 
-    else ; // CREATE CASE FOR A SINGLE CHILD
+    // 1 Child Case:
+    // toDelete's parent abandons him and adopts his only child
+    else {
+      std::unique_ptr<Node>* parentOfAnOnlyChild = &(toDelete->left_.get() ? toDelete->left_ : toDelete->right_);
+      if( !parent ){  // if it has no parent it must always be root
+        if( toDelete != this->root_.get() ) { std::cout << "Fucking how!?" << std::endl; exit(1); }
 
+        toDelete->value_ = parentOfAnOnlyChild->get()->value_;
+        this->remove(parentOfAnOnlyChild->get() , parentOfAnOnlyChild);
+      }
+      else {
+        parent->reset( parentOfAnOnlyChild->release() );   // Take away custody of their only child and give it to their parent
+        numRemoved += 1;
+      }
+    }
+    return numRemoved;
   }
 public:
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -140,7 +169,7 @@ public:
     return count(value, this->root_.get());
   }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-  int count(const T& value, Node* localRoot) {
+  int count(const T& value, Node* localRoot = NULL) {
     /* Recursive function to count how many times a value is in a tree.
     Will be called by the count above with localRoot set to this->root_*/
     if(!localRoot) return 0;
@@ -152,8 +181,7 @@ public:
   }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
   bool contains(const T& value, Node* localRoot = NULL) {
-    /* defining localRoot will allow you to search subtrees and not just
-    from this->root_ */
+    /* search tree ( or subtree ) to see if it contains a T value */
     Node* current = localRoot ? localRoot : this->root_.get();
     while(current)
     {
