@@ -3,28 +3,30 @@
 #include "./multiset.h"
 
 using nonstd::MultiSet;
-int main(){
+int main(const int argc, char ** argv){
+   if(argc != 3)
+   {
+      std::cerr << "./main BIGGEST_NUMBER NUM_INSERTIONS" << std::endl;
+      exit(1);
+   }
+
    srand(time(NULL));
    MultiSet<int> test;
 
-   std::cout << test.size() << std::endl;
-   int toCountFor = 1;
-   test.insert(1);
-   test.insert(0);
-   std::cout << test.size() << std::endl;
-
-
-/*   int myCounter = 0;
+   const int BIGGEST_NUMBER = std::stoi(*(argv+1));
+   const int NUM_INSERTIONS = std::stoi(*(argv+2));
+   int myCounter = 0;
+   int toCountFor = rand() % BIGGEST_NUMBER;
 
    
-   for(int k = 0; k < 1000; k++)
+   for(int k = 0; k < NUM_INSERTIONS; k++)
    {
-      int temp = rand() % 101;
+      int temp = rand() % BIGGEST_NUMBER;
       test.insert(temp);
       if(toCountFor == temp)
          myCounter++;
-   }*/
-   test.remove(toCountFor);
+   }
+
    std::cout << "Size: " << test.size() << std::endl;
    std::cout << "Count for: " << toCountFor << std::endl;
    std::cout << "Counted: " << test.count(toCountFor) << std::endl;
