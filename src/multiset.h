@@ -159,9 +159,9 @@ private:
       std::unique_ptr<Node>* parentOfAnOnlyChild = &(toDelete->left_.get() ? toDelete->left_ : toDelete->right_);
       if( !parent ){  // if it has no parent it must always be root, if not, then I don't know how
         if( toDelete != this->root_.get() ) { std::cout << "Fucking how!?" << std::endl; exit(1); }
-
-        toDelete->value_ = parentOfAnOnlyChild->get()->value_;
-        numRemoved += this->remove(parentOfAnOnlyChild->get() , parentOfAnOnlyChild);
+	
+	this->root_.reset( parentOfAnOnlyChild->release() ); // Take away custody and give it to state
+	numRemoved += 1;
       }
       else {
         parent->reset( parentOfAnOnlyChild->release() );   // Take away custody of their only child and give it to their parent
