@@ -1,6 +1,5 @@
 #ifndef _multiset_h
 #define _multiset_h
-
 #include <memory>
 
 namespace nonstd {
@@ -140,17 +139,40 @@ private:
     // and overwrite the value of toDelete with the value of 
     // that node, then send that node to be executed.
     else if(toDelete->left_ && toDelete->right_) {
-      if(!toDelete->right_->left_) {
-        toDelete->value_ = toDelete->right_->value_;
-        numRemoved += this->remove(toDelete->right_.get(), &toDelete->right_);
-      } 
+      Node* lChild = toDelete->left_.release();
+      Node* rChild = toDelete->right_.release();
+      if(!rChild->left_)
+      {
+        rChild->left_.reset(lChild); // should be NULL anyways before we reset it
+        parent->reset(rChild);
+        numRemoved+=1;
+      }
       else{
-        Node* traversal = toDelete->right_.get();
+        Node* traversal = rChild;
         while(traversal->left_->left_)  // keep traversing left but keep your distance so you stop at parent of the node you want
           traversal = traversal->left_.get();
-        toDelete->value_ = traversal->left_->value_;
-        numRemoved += this->remove(traversal->left_.get(), &traversal->left_);
+        parent->reset(traversal->left_.release());  // remove node and set it to least most on right side
+        numRemoved += 1;
+        
+        // Now reattach rChild
+        traversal = parent->get();
+        while(traversal->right_)
+          traversal = traversal->right_.get();
+        traversal->right_.reset(rChild);
+        
       }
+
+//      if(!toDelete->right_->left_) {
+//        toDelete->value_ = toDelete->right_->value_;
+//        numRemoved += this->remove(toDelete->right_.get(), &toDelete->right_);
+//      } 
+//      else{
+//        Node* traversal = toDelete->right_.get();
+//        while(traversal->left_->left_)  // keep traversing left but keep your distance so you stop at parent of the node you want
+//          traversal = traversal->left_.get();
+//        toDelete->value_ = traversal->left_->value_;
+//        numRemoved += this->remove(traversal->left_.get(), &traversal->left_);
+//      }
     }
 
     // 1 Child Case:
@@ -159,9 +181,9 @@ private:
       std::unique_ptr<Node>* parentOfAnOnlyChild = &(toDelete->left_.get() ? toDelete->left_ : toDelete->right_);
       if( !parent ){  // if it has no parent it must always be root, if not, then I don't know how
         if( toDelete != this->root_.get() ) { std::cout << "Fucking how!?" << std::endl; exit(1); }
-	
-	this->root_.reset( parentOfAnOnlyChild->release() ); // Take away custody and give it to state
-	numRemoved += 1;
+
+      	this->root_.reset( parentOfAnOnlyChild->release() ); // Take away custody and give it to state
+      	numRemoved += 1;
       }
       else {
         parent->reset( parentOfAnOnlyChild->release() );   // Take away custody of their only child and give it to their parent
