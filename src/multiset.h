@@ -123,37 +123,40 @@ private:
        parent is a pointer to the unique_ptr that points to toDelete */
 
     int numRemoved = 0;
+    if(!parent)   // handle root case
+      parent = &this->root_;
 
     // No children Case:
     // No orphans to worry about if we just kill him
     if(!toDelete->left_ && !toDelete->right_) {
-      if(toDelete == this->root_.get())
-        this->root_.reset();
-      else
-        parent->reset();
+      parent->reset();
       numRemoved += 1;
     }
 
     // 2 Children Case:
     // 2 Children so we get the least most value on the right
-    // and overwrite the value of toDelete with the value of 
-    // that node, then send that node to be executed.
+    // dettach it and reattach it to where toDelete is 
+    // then reattach toDelete's left child
     else if(toDelete->left_ && toDelete->right_) {
       Node* lChild = toDelete->left_.release();
       Node* rChild = toDelete->right_.release();
       if(!rChild->left_)
       {
-        rChild->left_.reset(lChild); // should be NULL anyways before we reset it
         parent->reset(rChild);
         numRemoved+=1;
+
+        // Now reattach lchild
+        parent->get()->left_.reset(lChild);
       }
       else{
         Node* traversal = rChild;
         while(traversal->left_->left_)  // keep traversing left but keep your distance so you stop at parent of the node you want
           traversal = traversal->left_.get();
-        parent->reset(traversal->left_.release());  // remove node and set it to least most on right side
+        parent->reset(traversal->left_.release());
         numRemoved += 1;
-        
+
+        // Now reattach lChild
+        parent->get()->left_.reset(lChild);
         // Now reattach rChild
         traversal = parent->get();
         while(traversal->right_)
@@ -161,34 +164,14 @@ private:
         traversal->right_.reset(rChild);
         
       }
-
-//      if(!toDelete->right_->left_) {
-//        toDelete->value_ = toDelete->right_->value_;
-//        numRemoved += this->remove(toDelete->right_.get(), &toDelete->right_);
-//      } 
-//      else{
-//        Node* traversal = toDelete->right_.get();
-//        while(traversal->left_->left_)  // keep traversing left but keep your distance so you stop at parent of the node you want
-//          traversal = traversal->left_.get();
-//        toDelete->value_ = traversal->left_->value_;
-//        numRemoved += this->remove(traversal->left_.get(), &traversal->left_);
-//      }
     }
 
     // 1 Child Case:
     // toDelete's parent abandons him and adopts his only child
     else {
       std::unique_ptr<Node>* parentOfAnOnlyChild = &(toDelete->left_.get() ? toDelete->left_ : toDelete->right_);
-      if( !parent ){  // if it has no parent it must always be root, if not, then I don't know how
-        if( toDelete != this->root_.get() ) { std::cout << "Fucking how!?" << std::endl; exit(1); }
-
-      	this->root_.reset( parentOfAnOnlyChild->release() ); // Take away custody and give it to state
-      	numRemoved += 1;
-      }
-      else {
         parent->reset( parentOfAnOnlyChild->release() );   // Take away custody of their only child and give it to their parent
         numRemoved += 1;
-      }
     }
     return numRemoved;
   }

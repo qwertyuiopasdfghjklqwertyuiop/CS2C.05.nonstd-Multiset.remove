@@ -4,15 +4,6 @@
 
 using nonstd::MultiSet;
 int main(const int argc, char ** argv){
-/*   MultiSet<int> test;
-   test.insert(8);
-   test.insert(10);
-   test.insert(9);
-   test.insert(12);
-
-
-   test.remove(10);*/
-
    if(argc != 3)
    {
       std::cerr << "./main BIGGEST_NUMBER NUM_INSERTIONS" << std::endl;
